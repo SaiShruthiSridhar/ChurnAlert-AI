@@ -6,6 +6,9 @@ ChurnAlert AI is a full-stack agentic system that helps Customer Success Manager
 
 ## Screenshots
 
+<details>
+<summary>🖥️ Click to expand — All Screenshots</summary>
+
 ### Landing Page
 ![Landing Page](Screenshots/landing.png)
 
@@ -53,6 +56,8 @@ ChurnAlert AI is a full-stack agentic system that helps Customer Success Manager
 
 ### Backend Running — Scheduler Confirmed
 ![Backend Running](Screenshots/backend_running.png)
+
+</details>
 
 ---
 
@@ -103,13 +108,13 @@ ChurnAlert AI/
 │   ├── apscheduler_verify.py           # Verify APScheduler jobs
 │   ├── create_hubspot_properties.py    # Create HubSpot custom properties via API
 │   ├── create_hubspot_tickets.py       # Create HubSpot tickets for HIGH risk companies
-│   ├── .env                            # Environment variables (not committed)
+│   ├── .env.example                    # Environment variables template
 │   ├── requirements_updated.txt        # Python dependencies
 │   ├── chroma_db/                      # ChromaDB persistent storage
-│   ├── churn_ai.db                     # SQLite main database
-│   ├── churn_ai_checkpoints.db         # LangGraph checkpointing database
 │   └── data/
-│       └── accounts.csv                # CSV demo accounts
+│       ├── accounts.csv                # CSV demo accounts
+│       ├── metrics.csv                 # Usage metrics data
+│       └── tickets.csv                 # Support tickets data
 │
 └── frontend/                           # React Vite frontend
     ├── src/
@@ -218,7 +223,7 @@ python backend/IBM_kaggle_chromadb.py
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ChurnAlert-AI.git
+git clone https://github.com/SaiShruthiSridhar/ChurnAlert-AI.git
 cd ChurnAlert-AI
 ```
 
@@ -234,12 +239,18 @@ env\Scripts\activate
 # Mac/Linux
 source env/bin/activate
 
-pip install -r requirements.txt
+pip install -r requirements_updated.txt
 ```
 
 ### 3. Environment Variables
 
-Create `backend/.env` with these keys:
+Copy the example file and fill in your keys:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+Edit `backend/.env` with your actual keys:
 
 ```env
 GROQ_API_KEY=your_groq_api_key
@@ -257,10 +268,10 @@ HUBSPOT_REFRESH_TOKEN=
 ### 4. Initialize Database and Seed Data
 
 ```bash
-# From backend directory
-python seed_data.py           # Seed CSV accounts into SQLite
-python seed_thresholds.py     # Seed 13 default rule thresholds
-python seed_rag.py            # Load 1869 Kaggle IBM Telco cases into ChromaDB
+cd backend
+python seed_data.py
+python seed_thresholds.py
+python seed_rag.py
 ```
 
 ### 5. Start Backend
@@ -316,12 +327,12 @@ python backend/apscheduler_verify.py
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | /accounts | Get all accounts (source=hubspot or csv) |
-| GET | /accounts/<id> | Get account details |
-| POST | /analyze/<id> | Run AI analysis on account |
-| POST | /accounts/<id>/approve | Approve outreach — logs to HubSpot |
-| POST | /accounts/<id>/renew | Mark account as renewed |
-| POST | /accounts/<id>/outcome | Record churn outcome |
-| GET | /accounts/<id>/similar | Get similar past cases from ChromaDB |
+| GET | /accounts/\<id\> | Get account details |
+| POST | /analyze/\<id\> | Run AI analysis on account |
+| POST | /accounts/\<id\>/approve | Approve outreach — logs to HubSpot |
+| POST | /accounts/\<id\>/renew | Mark account as renewed |
+| POST | /accounts/\<id\>/outcome | Record churn outcome |
+| GET | /accounts/\<id\>/similar | Get similar past cases from ChromaDB |
 | GET | /analytics | Portfolio analytics |
 | GET | /analytics/outcomes | Intervention outcome metrics |
 | GET | /analytics/trends | 6-month risk trend data |
@@ -329,7 +340,7 @@ python backend/apscheduler_verify.py
 | POST | /chat | Chatbot response |
 | GET | /hubspot/status | HubSpot connection status |
 | GET | /admin/thresholds | Get all 13 rule thresholds |
-| PUT | /admin/thresholds/<rule> | Update a threshold |
+| PUT | /admin/thresholds/\<rule\> | Update a threshold |
 | POST | /auth/signup | Register new user |
 | POST | /auth/login | Login with role verification |
 
