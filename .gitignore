@@ -1,0 +1,15 @@
+
+# Videos
+*.mp4
+*.avi
+*.mov
+
+# Unnecessary backend files
+backend/test_agent_fixed.py
+backend/check_hubspot_data.py
+backend/howtorun.txt
+backend/inspect_temp*.py
+backend/inspect_db.py
+
+# Large data files
+backend/Telco_customer_churn.xlsx
