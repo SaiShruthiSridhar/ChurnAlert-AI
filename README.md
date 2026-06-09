@@ -42,8 +42,6 @@ ChurnAlert AI is a full-stack agentic system that helps Customer Success Manager
 ### Analytics Page — All 4 Charts
 ![Analytics](Screenshots/analytics.png)
 
-### LangSmith — Node Trace (Monitor → Score → Retrieve → Reason)
-![LangSmith Trace](Screenshots/langsmith_trace.png)
 
 ### ChromaDB — 1869 Kaggle IBM Telco Records
 ![ChromaDB Kaggle](Screenshots/chromadb_kaggle.png)
