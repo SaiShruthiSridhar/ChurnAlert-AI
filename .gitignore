@@ -13,3 +13,4 @@ backend/inspect_db.py
 
 # Large data files
 backend/Telco_customer_churn.xlsx
+backend/.env

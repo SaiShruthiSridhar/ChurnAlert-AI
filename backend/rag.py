@@ -4,6 +4,13 @@ import os
 
 CHROMA_PATH = os.path.join(os.path.dirname(__file__), "chroma_db")
 
+# Pin ONNX cache inside the project directory so Render persists it across restarts.
+# Without this, Render wipes /opt/render/.cache on every cold start,
+# causing a 79MB re-download on every RAG query.
+_ONNX_CACHE = os.path.join(os.path.dirname(__file__), ".onnx_cache")
+os.makedirs(_ONNX_CACHE, exist_ok=True)
+os.environ["CHROMA_ONNX_MODEL_PATH"] = _ONNX_CACHE
+
 _client = None
 _collection = None
 
@@ -12,7 +19,6 @@ def get_collection():
     if _collection is not None:
         return _collection
     try:
-        # Use ChromaDB's built-in ONNX embedding function — no sentence-transformers or TF needed
         ef = DefaultEmbeddingFunction()
         _client = chromadb.PersistentClient(path=CHROMA_PATH)
         _collection = _client.get_collection(
@@ -50,8 +56,6 @@ def retrieve_similar_cases(risk_reasons: list, n_results: int = 3) -> list:
     if not risk_reasons:
         return FALLBACK_CASES[:2]
 
-    # Use only the most distinctive 3 signals for better ChromaDB matching
-    # Priority: contract type > feature adoption > inactivity/tickets
     priority_keywords = [
         'month-to-month', 'adoption', 'inactiv', 'login', 'tenure',
         'ticket', 'negative', 'renewal', 'session', 'churn'
@@ -81,8 +85,6 @@ def retrieve_similar_cases(risk_reasons: list, n_results: int = 3) -> list:
                 for i, doc in enumerate(docs):
                     meta = metas[i] if i < len(metas) else {}
                     distance = distances[i] if i < len(distances) else 1.0
-                    # ChromaDB L2 distance normalization — convert to 0-1 similarity score
-                    # L2 distances can be > 1, so we normalize using exponential decay
                     similarity = round(max(0.0, min(1.0, 1.0 / (1.0 + distance))), 3)
                     cases.append({
                         "id": f"chroma_{i}",
