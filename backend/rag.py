@@ -4,15 +4,26 @@ import os
 
 CHROMA_PATH = os.path.join(os.path.dirname(__file__), "chroma_db")
 
-# Pin ONNX cache inside the project directory so Render persists it across restarts.
-# Without this, Render wipes /opt/render/.cache on every cold start,
-# causing a 79MB re-download on every RAG query.
-_ONNX_CACHE = os.path.join(os.path.dirname(__file__), ".onnx_cache")
-os.makedirs(_ONNX_CACHE, exist_ok=True)
-os.environ["CHROMA_ONNX_MODEL_PATH"] = _ONNX_CACHE
-
 _client = None
 _collection = None
+
+def _warmup_onnx_model():
+    """
+    Force the ONNX model to download at startup, not on first user request.
+    This prevents the 79MB download from blocking the /similar endpoint.
+    On Render free tier, the download path is hardcoded to ~/.cache/chroma
+    and cannot be changed via env var — so we trigger it early instead.
+    """
+    try:
+        from chromadb.utils.embedding_functions.onnx_mini_lm_l6_v2 import ONNXMiniLM_L6_V2
+        ef = ONNXMiniLM_L6_V2()
+        ef._download_model_if_not_exists()
+        print("[RAG] ONNX model warm-up complete.")
+    except Exception as e:
+        print(f"[RAG] ONNX warm-up failed (non-fatal): {e}")
+
+# Warm up at import time so Render downloads the model during startup
+_warmup_onnx_model()
 
 def get_collection():
     global _client, _collection
