@@ -1,0 +1,31 @@
+Company name,Domain name,Industry,Annual revenue,Number of employees,City,Country,Description,assigned_csm,contract_type,tenure_months,monthly_charges,feature_adoption_pct,login_frequency,session_duration_avg,renewal_date,last_login_date
+Quantum Dynamics,quantumdynamics.com,Computer Software,150000,45,San Francisco,United States,SaaS platform client,Sarah Jenkins,Month-to-month,2,12500,8,1,3,2026-06-15,2026-04-20
+Orbit Software,orbitsoftware.com,Computer Software,75000,25,Denver,United States,Early stage startup,Michael Chen,Month-to-month,1,6250,12,2,4,2026-06-10,2026-04-15
+Stellar Systems,stellarsystems.com,Computer Software,95000,30,Austin,United States,Startup client,Emily Rodriguez,Month-to-month,2,7916,15,1,2,2026-06-20,2026-04-10
+NovaBridge Tech,novabridge.com,Technology,180000,80,Boston,United States,Mid-market client,David Park,Month-to-month,3,15000,10,2,3,2026-06-25,2026-04-05
+CipherCore,ciphercore.com,Computer Software,220000,95,Seattle,United States,Security software firm,Jessica Taylor,Month-to-month,2,18333,7,1,2,2026-06-12,2026-04-18
+Apex Innovations,apexinnovations.com,Computer Software,420000,200,Chicago,United States,Mid-market client,Sarah Jenkins,Month-to-month,3,35000,18,2,4,2026-06-30,2026-04-22
+DataPulse,datapulse.com,Technology,310000,130,Austin,United States,Analytics platform,Michael Chen,Month-to-month,4,25833,16,3,5,2026-07-05,2026-04-28
+VortexAI,vortexai.com,Computer Software,195000,85,Miami,United States,AI startup client,Emily Rodriguez,Month-to-month,2,16250,9,1,3,2026-06-18,2026-04-12
+Horizon Analytics,horizonanalytics.com,Financial Services,185000,75,Boston,United States,Analytics platform client,David Park,One year,8,15416,35,8,18,2026-09-15,2026-05-10
+Pinnacle Data,pinnacledata.com,Technology,560000,280,Los Angeles,United States,Enterprise client,Jessica Taylor,One year,14,46666,42,9,22,2026-10-20,2026-05-15
+Nexus Digital,nexusdigital.com,Computer Software,320000,150,Seattle,United States,Digital agency client,Sarah Jenkins,One year,10,26666,38,7,20,2026-08-25,2026-05-08
+CascadeFlow,cascadeflow.com,Computer Software,275000,110,Portland,United States,Growing startup,Michael Chen,One year,9,22916,32,6,15,2026-09-10,2026-05-12
+SwiftScale,swiftscale.com,Technology,390000,165,Denver,United States,Scale-up client,Emily Rodriguez,One year,12,32500,45,10,25,2026-10-05,2026-05-18
+BlueMatrix,bluematrix.com,Financial Services,430000,185,New York,United States,Fintech platform,David Park,One year,11,35833,40,8,19,2026-09-28,2026-05-20
+CloudNine,cloudnine.com,Computer Software,265000,105,San Francisco,United States,Cloud infrastructure,Jessica Taylor,One year,7,22083,28,5,12,2026-08-15,2026-05-05
+InfraLogic,infralogic.com,Technology,345000,145,Chicago,United States,Infrastructure client,Sarah Jenkins,One year,13,28750,55,12,30,2026-11-10,2026-05-22
+NovaTech Solutions,novatech.com,Technology,280000,120,New York,United States,Enterprise software client,Michael Chen,Two year,24,23333,62,15,35,2027-03-15,2026-05-23
+Apex Connect,apexconnect.com,Computer Software,520000,240,Los Angeles,United States,Enterprise connectivity,Emily Rodriguez,Two year,30,43333,70,18,42,2027-05-20,2026-05-21
+ZenithCloud,zenithcloud.com,Computer Software,610000,275,Seattle,United States,Cloud services leader,David Park,Two year,36,50833,75,20,45,2027-06-10,2026-05-20
+PrimeForce,primeforce.com,Technology,480000,215,Boston,United States,Enterprise tech client,Jessica Taylor,Two year,28,40000,68,17,40,2027-04-25,2026-05-19
+DataStream Pro,datastreampr.com,Financial Services,720000,320,Chicago,United States,Data analytics enterprise,Sarah Jenkins,Two year,42,60000,80,22,50,2027-07-15,2026-05-22
+FluxSystems,fluxsystems.com,Computer Software,390000,170,Denver,United States,Systems integration,Michael Chen,Two year,24,32500,65,16,38,2027-03-20,2026-05-20
+CoreVault,corevault.com,Technology,550000,245,San Francisco,United States,Security enterprise,Emily Rodriguez,Two year,32,45833,72,19,44,2027-05-30,2026-05-21
+BrightPath,brightpath.com,Computer Software,415000,180,Austin,United States,Growth platform,David Park,Two year,26,34583,69,18,41,2027-04-15,2026-05-19
+Stellar Enterprise,stellarent.com,Technology,680000,300,Miami,United States,Large enterprise client,Jessica Taylor,Two year,38,56666,78,21,48,2027-06-25,2026-05-22
+OmniConnect,omniconnect.com,Computer Software,445000,195,Portland,United States,Connectivity platform,Sarah Jenkins,Two year,29,37083,71,19,43,2027-05-10,2026-05-20
+TechVault,techvault.com,Technology,505000,225,Seattle,United States,Technology vault client,Michael Chen,Two year,34,42083,74,20,46,2027-06-05,2026-05-21
+IronGrid,irongrid.com,Computer Software,360000,155,New York,United States,Grid computing client,Emily Rodriguez,Two year,22,30000,63,15,36,2027-02-28,2026-05-18
+NexusCloud,nexuscloud.com,Financial Services,625000,280,Chicago,United States,Cloud fintech enterprise,David Park,Two year,40,52083,77,21,47,2027-07-01,2026-05-22
+PeakSystems,peaksystems.com,Technology,470000,210,Boston,United States,Systems enterprise client,Jessica Taylor,Two year,27,39166,66,17,39,2027-04-20,2026-05-20

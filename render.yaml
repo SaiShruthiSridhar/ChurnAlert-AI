@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: churnalert-ai-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements_updated.txt
+    startCommand: python app.py
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: LANGCHAIN_TRACING_V2
+        value: "true"
+      - key: LANGCHAIN_API_KEY
+        sync: false
+      - key: LANGCHAIN_PROJECT
+        value: churneye
+      - key: HUBSPOT_CLIENT_ID
+        sync: false
+      - key: HUBSPOT_CLIENT_SECRET
+        sync: false
+      - key: HUBSPOT_REDIRECT_URI
+        sync: false
+      - key: HUBSPOT_APP_ID
+        sync: false
+      - key: HUBSPOT_ACCESS_TOKEN
+        sync: false
+      - key: HUBSPOT_REFRESH_TOKEN
+        value: ""
+      - key: PYTHON_VERSION
+        value: "3.10.0"

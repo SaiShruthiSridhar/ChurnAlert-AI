@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+*.pyw
+*.pyc
+
+# Virtual Environment
+env/
+venv/
+.env
+.env.local
+
+# SQLite Databases
+*.db
+*.db-shm
+*.db-wal
+
+# Node
+node_modules/
+dist/
+build/
+.DS_Store
+
+# Logs
+*.log
+
+# ChromaDB (optional — comment out if you want to include it)
+# backend/chroma_db/
+
+# Test files
+backend/test_agent_fixed.py
+backend/inspect_temp*.py
+backend/inspect_db.py
+
+# Video files
+*.mp4
+
+# Excel files with sensitive data
+# backend/Telco_customer_churn.xlsx
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+Desktop.ini

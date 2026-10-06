@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+*.pyw
+*.pyc
+
+# Virtual Environment
+env/
+venv/
+.env
+.env.local
+
+# SQLite Databases
+*.db
+*.db-shm
+*.db-wal
+
+# Node
+node_modules/
+dist/
+build/
+.DS_Store
+
+# Logs
+*.log
+
+# Video files
+*.mp4
+*.avi
+*.mov
+
+# Large data files
+backend/Telco_customer_churn.xlsx
+
+# Unnecessary backend files
+backend/test_agent_fixed.py
+backend/check_hubspot_data.py
+backend/howtorun.txt
+backend/inspect_temp*.py
+backend/inspect_db.py
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+Desktop.ini

@@ -1,0 +1,73 @@
+account_id,subject,sentiment,is_resolved,created_at
+ACC-1000,Dashboard loading very slowly during peak hours,negative,True,2026-03-27
+ACC-1000,Cannot export Q4 financial reports,negative,False,2026-03-17
+ACC-1000,Great support from the CSM team on onboarding,positive,True,2026-03-23
+ACC-1001,Cannot export Q4 financial reports,negative,False,2026-04-20
+ACC-1002,Feature request: Dark mode for the portal,positive,False,2026-04-29
+ACC-1002,New integration request for Slack/Teams,neutral,False,2026-03-25
+ACC-1002,Considering switching to competitor due to pricing,negative,False,2026-04-17
+ACC-1002,Cannot export Q4 financial reports,negative,False,2026-03-22
+ACC-1003,Considering switching to competitor due to pricing,negative,False,2026-04-24
+ACC-1003,New integration request for Slack/Teams,neutral,False,2026-03-07
+ACC-1004,Great support from the CSM team on onboarding,positive,True,2026-04-07
+ACC-1004,New integration request for Slack/Teams,neutral,False,2026-03-30
+ACC-1004,Feature request: Dark mode for the portal,positive,False,2026-03-19
+ACC-1005,How to enable SSO for our organization?,neutral,True,2026-03-14
+ACC-1006,Considering switching to competitor due to pricing,negative,False,2026-03-19
+ACC-1006,How to enable SSO for our organization?,neutral,True,2026-03-10
+ACC-1006,Great support from the CSM team on onboarding,positive,True,2026-04-02
+ACC-1007,Great support from the CSM team on onboarding,positive,True,2026-04-25
+ACC-1008,New integration request for Slack/Teams,neutral,False,2026-03-14
+ACC-1009,How to enable SSO for our organization?,neutral,True,2026-03-25
+ACC-1009,Feature request: Dark mode for the portal,positive,False,2026-03-29
+ACC-1009,Great support from the CSM team on onboarding,positive,True,2026-04-04
+ACC-1010,Feature request: Dark mode for the portal,positive,False,2026-03-18
+ACC-1011,How to enable SSO for our organization?,neutral,True,2026-04-03
+ACC-1011,Considering switching to competitor due to pricing,negative,False,2026-04-22
+ACC-1012,Great support from the CSM team on onboarding,positive,True,2026-03-21
+ACC-1012,Platform downtime cost us 2 hours of productivity,negative,True,2026-03-27
+ACC-1012,Cannot export Q4 financial reports,negative,False,2026-04-07
+ACC-1013,Billing discrepancy on last month's invoice,negative,True,2026-03-30
+ACC-1013,How to enable SSO for our organization?,neutral,True,2026-04-11
+ACC-1013,Great support from the CSM team on onboarding,positive,True,2026-04-26
+ACC-1013,Feature request: Dark mode for the portal,positive,False,2026-03-26
+ACC-1014,API documentation is missing examples for Node.js,neutral,True,2026-03-23
+ACC-1014,Platform downtime cost us 2 hours of productivity,negative,True,2026-03-15
+ACC-1015,Feature request: Dark mode for the portal,positive,False,2026-03-22
+ACC-1015,Billing discrepancy on last month's invoice,negative,True,2026-04-17
+ACC-1015,Dashboard loading very slowly during peak hours,negative,True,2026-03-24
+ACC-1015,How to enable SSO for our organization?,neutral,True,2026-03-02
+ACC-1016,Great support from the CSM team on onboarding,positive,True,2026-03-30
+ACC-1016,New integration request for Slack/Teams,neutral,False,2026-03-29
+ACC-1016,Dashboard loading very slowly during peak hours,negative,True,2026-04-28
+ACC-1017,Cannot export Q4 financial reports,negative,False,2026-04-21
+ACC-1017,New integration request for Slack/Teams,neutral,False,2026-04-04
+ACC-1017,Great support from the CSM team on onboarding,positive,True,2026-03-08
+ACC-1018,Considering switching to competitor due to pricing,negative,False,2026-03-21
+ACC-1018,API documentation is missing examples for Node.js,neutral,True,2026-03-09
+ACC-1018,Dashboard loading very slowly during peak hours,negative,True,2026-03-07
+ACC-1019,Considering switching to competitor due to pricing,negative,False,2026-04-15
+ACC-1019,Cannot export Q4 financial reports,negative,False,2026-03-05
+ACC-1019,New integration request for Slack/Teams,neutral,False,2026-03-16
+ACC-1020,Great support from the CSM team on onboarding,positive,True,2026-03-19
+ACC-1021,Feature request: Dark mode for the portal,positive,False,2026-03-29
+ACC-1021,API documentation is missing examples for Node.js,neutral,True,2026-03-02
+ACC-1021,How to enable SSO for our organization?,neutral,True,2026-04-26
+ACC-1022,Feature request: Dark mode for the portal,positive,False,2026-03-18
+ACC-1022,Considering switching to competitor due to pricing,negative,False,2026-03-08
+ACC-1022,Cannot export Q4 financial reports,negative,False,2026-03-31
+ACC-1022,Dashboard loading very slowly during peak hours,negative,True,2026-03-29
+ACC-1023,New integration request for Slack/Teams,neutral,False,2026-03-15
+ACC-1023,Dashboard loading very slowly during peak hours,negative,True,2026-04-07
+ACC-1024,How to enable SSO for our organization?,neutral,True,2026-03-13
+ACC-1024,API documentation is missing examples for Node.js,neutral,True,2026-04-02
+ACC-1025,New integration request for Slack/Teams,neutral,False,2026-04-11
+ACC-1026,Dashboard loading very slowly during peak hours,negative,True,2026-04-15
+ACC-1027,Billing discrepancy on last month's invoice,negative,True,2026-03-10
+ACC-1027,How to enable SSO for our organization?,neutral,True,2026-04-13
+ACC-1027,Cannot export Q4 financial reports,negative,False,2026-03-20
+ACC-1027,Dashboard loading very slowly during peak hours,negative,True,2026-04-09
+ACC-1028,API documentation is missing examples for Node.js,neutral,True,2026-04-25
+ACC-1029,New integration request for Slack/Teams,neutral,False,2026-04-07
+ACC-1029,Platform downtime cost us 2 hours of productivity,negative,True,2026-03-14
+1215,Initial onboarding setup,neutral,true,2026-04-30

@@ -1,0 +1,32 @@
+id,name,tenure,monthly_charges,contract_type,assigned_csm,status,last_login_date,renewal_date,contract_value
+ACC-1000,Quantum Dynamics,44,487.73,Two year,Jessica Taylor,Active,2026-04-13,2026-11-16,5852.76
+ACC-1001,Nebula Systems,28,226.88,Two year,Jessica Taylor,Active,2026-04-25,2027-01-17,2722.56
+ACC-1002,Vertex Solutions,21,187.7,One year,Emily Rodriguez,Renewed,2026-04-12,2026-05-30,2252.4
+ACC-1003,Apex Logic,27,139.15,Two year,Michael Chen,Active,2026-04-10,2027-03-19,1669.8
+ACC-1004,Solaris Tech,2,294.7,Month-to-month,Sarah Jenkins,Active,2026-04-21,2026-08-14,294.7
+ACC-1005,Stellar Soft,41,135.59,One year,Jessica Taylor,Active,2026-04-24,2026-06-05,1627.08
+ACC-1006,Prism Interactive,39,331.3,Two year,Michael Chen,Active,2026-04-26,2026-09-30,3975.6
+ACC-1007,Flux Networks,2,248.06,One year,David Park,Active,2026-04-04,2026-12-28,2976.72
+ACC-1008,Zenith Global,8,239.23,Two year,Sarah Jenkins,Active,2026-04-12,2026-06-24,2870.76
+ACC-1009,Ember Analytics,18,187.78,Month-to-month,Michael Chen,Active,2026-04-16,2026-07-30,187.78
+ACC-1010,Oracle Cloud (SMB),36,322.8,Month-to-month,David Park,Contacted,2026-04-14,2027-03-26,322.8
+ACC-1011,ByteScale,36,275.58,Two year,Emily Rodriguez,Active,2026-04-22,2027-02-27,3306.96
+ACC-1012,CloudPulse,7,230.28,Month-to-month,Sarah Jenkins,Active,2026-04-17,2026-09-02,230.28
+ACC-1013,DataStream,6,393.71,Two year,Emily Rodriguez,Active,2026-04-18,2027-03-14,4724.52
+ACC-1014,InfiniLink,28,377.98,Two year,David Park,Active,2026-04-22,2026-07-22,4535.76
+ACC-1015,NetGlow,9,339.51,Two year,Emily Rodriguez,Active,2026-04-07,2026-12-27,4074.12
+ACC-1016,SwiftScale,2,329.85,One year,Michael Chen,Active,2026-04-05,2026-07-03,3958.2
+ACC-1017,Terraform Tech,43,194.36,One year,Emily Rodriguez,Active,2026-04-08,2026-07-28,2332.32
+ACC-1018,Velocify,37,429.4,One year,Emily Rodriguez,Active,2026-04-04,2027-03-01,5152.8
+ACC-1019,WaveForm,36,78.13,One year,Sarah Jenkins,Active,2026-04-02,2027-03-05,937.56
+ACC-1020,BlueHorizon,14,475.57,One year,David Park,Active,2026-04-10,2027-02-12,5706.84
+ACC-1021,DeepLogic,30,304.07,One year,Jessica Taylor,Active,2026-04-08,2026-12-05,3648.84
+ACC-1022,EcoSystem,11,233.54,Month-to-month,Michael Chen,Active,2026-04-09,2026-10-28,233.54
+ACC-1023,FireFly,44,95.31,One year,Jessica Taylor,Active,2026-04-21,2026-05-29,1143.72
+ACC-1024,GreenLeaf,24,258.02,Month-to-month,David Park,Active,2026-04-13,2026-10-23,258.02
+ACC-1025,IronForge,42,320.27,One year,Michael Chen,Active,2026-04-08,2026-06-14,3843.24
+ACC-1026,Krypton,7,430.9,One year,Jessica Taylor,Contacted,2026-04-22,2027-01-11,5170.8
+ACC-1027,LunarLabs,21,206.07,One year,Jessica Taylor,Active,2026-04-22,2027-03-15,2472.84
+ACC-1028,Matrix,31,347.27,Two year,Jessica Taylor,Active,2026-04-12,2026-08-09,4167.24
+ACC-1029,Nova,35,482.65,Two year,Emily Rodriguez,Active,2026-04-11,2026-07-30,5791.8
+1215,AcmeCorp,12,200.0,Monthly,Alex Strategist,Active,2026-04-30,2027-04-30,2400.0
