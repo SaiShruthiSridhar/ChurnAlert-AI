@@ -12,7 +12,12 @@ def seed():
     db = SessionLocal()
     
     # Initialize Rule Weights
-    rules = ["new_account", "high_cost_new", "no_contract", "inactive_renewal", "inactive", "low_adoption", "negative_tickets"]
+    rules = [
+        "month_to_month", "tenure_critical", "tenure_early", "inactive_renewal",
+        "renewal_approaching", "low_adoption_critical", "low_adoption",
+        "inactive_critical", "inactive", "low_session_duration", "no_usage_data",
+        "negative_tickets_high", "negative_tickets", "unresolved_tickets", "high_value_account"
+    ]
     for r in rules:
         if not db.query(RuleWeight).filter(RuleWeight.rule_name == r).first():
             db.add(RuleWeight(rule_name=r, weight=1.0))
@@ -66,7 +71,7 @@ def seed():
         db.flush()
         
         # Initial risk calculation
-        score, tier, reasons = calculate_risk(account)
+        score, tier, reasons, fired_rules = calculate_risk(account)
         risk = RiskScore(account_id=account.id, score=score, tier=tier, reasons=reasons)
         db.add(risk)
 

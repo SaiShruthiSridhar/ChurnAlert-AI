@@ -4,19 +4,20 @@ import json
 import hashlib
 import base64
 import secrets
-from dotenv import load_dotenv, set_key
+import datetime
+from dotenv import load_dotenv
 
 load_dotenv()
 
 HUBSPOT_CLIENT_ID = os.getenv("HUBSPOT_CLIENT_ID")
 HUBSPOT_CLIENT_SECRET = os.getenv("HUBSPOT_CLIENT_SECRET")
 HUBSPOT_REDIRECT_URI = os.getenv("HUBSPOT_REDIRECT_URI")
-HUBSPOT_TOKEN_URL = "https://api.hubapi.com/oauth/v1/token"
-HUBSPOT_BASE_URL = "https://api.hubapi.com"
-ENV_PATH = os.path.join(os.path.dirname(__file__), ".env")
+HUBSPOT_TOKEN_URL = "https://mcp.hubspot.com/oauth/v1/token"
+HUBSPOT_BASE_URL = "https://mcp.hubspot.com"
 
 # Global storage for PKCE code_verifier (used between /connect and /callback)
 _pkce_code_verifier = None
+
 
 def generate_pkce_pair():
     """Generates a PKCE code_verifier and code_challenge pair."""
@@ -28,29 +29,69 @@ def generate_pkce_pair():
     ).rstrip(b'=').decode()
     return code_verifier, code_challenge
 
+
 def get_pkce_verifier():
     """Returns the stored code_verifier for use in token exchange."""
     return _pkce_code_verifier
 
+
 def get_access_token():
-    token = os.getenv("HUBSPOT_ACCESS_TOKEN", "")
-    if not token:
-        load_dotenv(ENV_PATH, override=True)
-        token = os.getenv("HUBSPOT_ACCESS_TOKEN", "")
-    return token
+    """Retrieve access token from database, falling back to env var."""
+    try:
+        from database import SessionLocal
+        from models import HubSpotToken
+        session = SessionLocal()
+        record = session.query(HubSpotToken).order_by(HubSpotToken.updated_at.desc()).first()
+        session.close()
+        if record and record.access_token:
+            return record.access_token
+    except Exception as e:
+        print(f"[HubSpot MCP] DB token read error: {e}")
+    # Fallback to env var for backward compatibility
+    return os.getenv("HUBSPOT_ACCESS_TOKEN", "")
+
 
 def get_refresh_token():
+    """Retrieve refresh token from database, falling back to env var."""
+    try:
+        from database import SessionLocal
+        from models import HubSpotToken
+        session = SessionLocal()
+        record = session.query(HubSpotToken).order_by(HubSpotToken.updated_at.desc()).first()
+        session.close()
+        if record and record.refresh_token:
+            return record.refresh_token
+    except Exception as e:
+        print(f"[HubSpot MCP] DB refresh token read error: {e}")
     return os.getenv("HUBSPOT_REFRESH_TOKEN", "")
 
+
 def save_tokens(access_token, refresh_token):
+    """Save tokens to database so they persist across Render restarts."""
     os.environ["HUBSPOT_ACCESS_TOKEN"] = access_token
-    os.environ["HUBSPOT_REFRESH_TOKEN"] = refresh_token
+    os.environ["HUBSPOT_REFRESH_TOKEN"] = refresh_token or ""
     try:
-        set_key(ENV_PATH, "HUBSPOT_ACCESS_TOKEN", access_token)
-        set_key(ENV_PATH, "HUBSPOT_REFRESH_TOKEN", refresh_token)
-        print("[HubSpot MCP] Tokens saved to .env")
+        from database import SessionLocal
+        from models import HubSpotToken
+        session = SessionLocal()
+        record = session.query(HubSpotToken).first()
+        if record:
+            record.access_token = access_token
+            record.refresh_token = refresh_token or ""
+            record.updated_at = datetime.datetime.utcnow()
+        else:
+            record = HubSpotToken(
+                access_token=access_token,
+                refresh_token=refresh_token or "",
+                updated_at=datetime.datetime.utcnow()
+            )
+            session.add(record)
+        session.commit()
+        session.close()
+        print("[HubSpot MCP] Tokens saved to database.")
     except Exception as e:
-        print(f"[HubSpot MCP] Could not save tokens to .env: {e}")
+        print(f"[HubSpot MCP] Could not save tokens to database: {e}")
+
 
 def get_oauth_url():
     code_verifier, code_challenge = generate_pkce_pair()
@@ -62,6 +103,7 @@ def get_oauth_url():
         f"&code_challenge_method=S256"
     )
     return url
+
 
 def exchange_code_for_tokens(code):
     try:
@@ -91,6 +133,7 @@ def exchange_code_for_tokens(code):
         print(f"[HubSpot MCP] Token exchange error: {e}")
         return False, None
 
+
 def refresh_access_token():
     refresh_token = get_refresh_token()
     if not refresh_token:
@@ -114,6 +157,7 @@ def refresh_access_token():
     except Exception as e:
         print(f"[HubSpot MCP] Token refresh error: {e}")
         return False
+
 
 def hubspot_get(endpoint, params=None):
     access_token = get_access_token()
@@ -139,6 +183,7 @@ def hubspot_get(endpoint, params=None):
     except Exception as e:
         print(f"[HubSpot MCP] Request error: {e}")
         return None
+
 
 def fetch_companies():
     print("[HubSpot MCP] Fetching companies with full custom properties...")
@@ -188,6 +233,7 @@ def fetch_companies():
     print(f"[HubSpot MCP] Fetched {len(companies)} companies with full data.")
     return companies
 
+
 def fetch_company_details(hubspot_company_id):
     print(f"[HubSpot MCP] Fetching details for company {hubspot_company_id}...")
     properties = [
@@ -216,6 +262,7 @@ def fetch_company_details(hubspot_company_id):
         "open_deals": props.get("hs_num_open_deals", 0)
     }
 
+
 def is_hubspot_connected():
     token = get_access_token()
     if not token:
@@ -226,7 +273,7 @@ def is_hubspot_connected():
             "Content-Type": "application/json"
         }
         response = requests.get(
-            "https://api.hubapi.com/crm/v3/objects/companies?limit=1&properties=name",
+            f"{HUBSPOT_BASE_URL}/crm/v3/objects/companies?limit=1&properties=name",
             headers=headers
         )
         if response.status_code == 200:
@@ -237,57 +284,42 @@ def is_hubspot_connected():
         print(f"[HubSpot] Connection check error: {e}")
         return False
 
+
 def find_company_by_name(company_name):
     """Search HubSpot for a company by name and return its HubSpot ID."""
     try:
-        params = {
-            "limit": 5,
-            "properties": "name,domain",
-            "filterGroups": json.dumps([{
+        search_payload = {
+            "filterGroups": [{
                 "filters": [{
                     "propertyName": "name",
                     "operator": "CONTAINS_TOKEN",
                     "value": company_name
                 }]
-            }])
+            }],
+            "properties": ["name", "domain"],
+            "limit": 5
         }
-        data = hubspot_get("/crm/v3/objects/companies/search", params=None)
-        if data is None:
-            search_payload = {
-                "filterGroups": [{
-                    "filters": [{
-                        "propertyName": "name",
-                        "operator": "CONTAINS_TOKEN",
-                        "value": company_name
-                    }]
-                }],
-                "properties": ["name", "domain"],
-                "limit": 5
-            }
-            access_token = get_access_token()
-            if not access_token:
-                return None
-            headers = {
-                "Authorization": f"Bearer {access_token}",
-                "Content-Type": "application/json"
-            }
-            response = requests.post(
-                f"{HUBSPOT_BASE_URL}/crm/v3/objects/companies/search",
-                headers=headers,
-                json=search_payload
-            )
-            if response.status_code == 200:
-                results = response.json().get("results", [])
-                if results:
-                    return results[0].get("id")
+        access_token = get_access_token()
+        if not access_token:
             return None
-        results = data.get("results", [])
-        if results:
-            return results[0].get("id")
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+        response = requests.post(
+            f"{HUBSPOT_BASE_URL}/crm/v3/objects/companies/search",
+            headers=headers,
+            json=search_payload
+        )
+        if response.status_code == 200:
+            results = response.json().get("results", [])
+            if results:
+                return results[0].get("id")
         return None
     except Exception as e:
         print(f"[HubSpot MCP] Company search error: {e}")
         return None
+
 
 def create_hubspot_note(company_id, note_body, csm_name="ChurnAlert AI"):
     """Create a note on a HubSpot company record to log the outreach message."""
@@ -300,7 +332,6 @@ def create_hubspot_note(company_id, note_body, csm_name="ChurnAlert AI"):
             "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json"
         }
-        import datetime
         note_payload = {
             "properties": {
                 "hs_note_body": f"[ChurnAlert AI Outreach — Approved by {csm_name}]\n\n{note_body}",
@@ -328,6 +359,7 @@ def create_hubspot_note(company_id, note_body, csm_name="ChurnAlert AI"):
         print(f"[HubSpot MCP] Note creation error: {e}")
         return False
 
+
 def fetch_company_tickets(hubspot_company_id):
     """Fetch support tickets associated with a HubSpot company."""
     try:
@@ -338,7 +370,6 @@ def fetch_company_tickets(hubspot_company_id):
             "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json"
         }
-        # Get tickets associated with the company
         response = requests.get(
             f"{HUBSPOT_BASE_URL}/crm/v3/objects/companies/{hubspot_company_id}/associations/tickets",
             headers=headers
@@ -364,7 +395,6 @@ def fetch_company_tickets(hubspot_company_id):
                 is_resolved = stage in ["4", "closed"]
                 createdate = props.get("createdate")
                 if not createdate:
-                    import datetime
                     createdate = datetime.datetime.utcnow().isoformat() + "Z"
                 tickets.append({
                     "subject": subject,

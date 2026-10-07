@@ -37,7 +37,7 @@ def get_portfolio_insights():
     
     for _, acc in df_accounts.iterrows():
         details = get_account_details(acc['id'])
-        _, _, reasons = calculate_risk(details)
+        _, _, reasons, _ = calculate_risk(details)
         all_reasons.extend(reasons)
     
     # Return top unique reasons

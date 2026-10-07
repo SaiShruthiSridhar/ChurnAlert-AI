@@ -304,6 +304,47 @@ export default function AdminDashboard() {
           )}
         </div>
 
+        {/* Flagged for Admin Review */}
+        {outcomes && outcomes.flagged_accounts && outcomes.flagged_accounts.length > 0 && (
+          <div style={{ background: '#fff', border: '1.5px solid #fecaca', borderRadius: 28, padding: 28, boxShadow: '0 1px 8px rgba(220,38,38,0.07)', marginBottom: 32 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+              <div style={{ width: 4, height: 20, background: '#dc2626', borderRadius: 4 }} />
+              <h3 style={{ fontSize: 12, fontWeight: 800, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.12em', margin: 0 }}>
+                Flagged for Admin Review
+              </h3>
+              <span style={{ padding: '2px 10px', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: 20, fontSize: 11, fontWeight: 900 }}>
+                {outcomes.flagged_accounts.length}
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {outcomes.flagged_accounts.map((item, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 16, flexWrap: 'wrap', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: 18 }}>⚠️</span>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: '#1e293b' }}>{item.account_name || item.account_id}</div>
+                      <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, marginTop: 2 }}>{item.flag_reason}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {item.assigned_csm && (
+                      <span style={{ fontSize: 11, color: '#6366f1', fontWeight: 700 }}>CSM: {item.assigned_csm}</span>
+                    )}
+                    {item.outcome_date && (
+                      <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, fontFamily: 'monospace' }}>
+                        {new Date(item.outcome_date).toLocaleDateString()}
+                      </span>
+                    )}
+                    <span style={{ padding: '3px 10px', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: 8, fontSize: 10, fontWeight: 900 }}>
+                      CHURNED
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Accounts table */}
         <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 28, padding: 28, boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>

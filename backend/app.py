@@ -55,7 +55,7 @@ def get_accounts():
                     }],
                     'support_tickets': []
                 }
-                score, tier, reasons = calculate_risk(account)
+                score, tier, reasons, fired_rules = calculate_risk(account)
                 account['risk_score'] = score
                 account['risk_tier'] = tier
                 account['risk_reasons'] = reasons
@@ -97,7 +97,7 @@ def get_accounts():
     from rules_engine import calculate_risk
     result = []
     for account in accounts:
-        score, tier, reasons = calculate_risk(account)
+        score, tier, reasons, fired_rules = calculate_risk(account)
         account['risk_score'] = score
         account['risk_tier'] = tier
         account['risk_reasons'] = reasons
@@ -157,7 +157,7 @@ def get_account_details(account_id):
                 status_session.close()
             except Exception:
                 pass
-            score, tier, reasons = calculate_risk(account)
+            score, tier, reasons, fired_rules = calculate_risk(account)
             account['risk_info'] = {'score': score, 'tier': tier, 'reasons': reasons}
             return jsonify(account), 200
         except Exception as e:
@@ -167,13 +167,13 @@ def get_account_details(account_id):
     acc = data_loader.get_account_details(account_id)
     if not acc:
         return jsonify({"error": "Account not found"}), 404
-    score, tier, reasons = calculate_risk(acc)
+    score, tier, reasons, fired_rules = calculate_risk(acc)
     acc["risk_info"] = {"score": score, "tier": tier, "reasons": reasons}
     return jsonify(acc)
 
 @app.route('/analyze/<account_id>', methods=['POST'])
 def analyze_account(account_id):
-    # Ensure agent gets the latest data from loader if needed, 
+    # Ensure agent gets the latest data from loader if needed,
     # though agent.py handles its own data fetching.
     agent = agent_mod.get_agent()
     try:
@@ -199,11 +199,24 @@ def analyze_account(account_id):
             session.close()
         except Exception as score_err:
             print(f"[Score Save] Could not save risk score: {score_err}")
+
+        # If LOW risk, agent stopped after score node — return early with clear message
+        tier = result.get('risk_info', {}).get('tier', 'LOW') if isinstance(result.get('risk_info'), dict) else 'LOW'
+        if tier == 'LOW':
+            return jsonify({
+                "reasoning": "Low risk — no AI analysis needed. This account shows healthy engagement signals.",
+                "action_recommendation": "No immediate action required. Continue standard check-in cadence.",
+                "outreach_draft": "",
+                "confidence": "HIGH",
+                "risk_tier": "LOW"
+            })
+
         return jsonify({
             "reasoning": result.get("reasoning"),
             "action_recommendation": result.get("action_recommendation"),
             "outreach_draft": result.get("outreach_draft"),
-            "confidence": result.get("confidence", "MEDIUM")
+            "confidence": result.get("confidence", "MEDIUM"),
+            "brief": result.get("brief")
         })
     except Exception as e:
         print(f"Error in analysis: {e}")
@@ -249,6 +262,16 @@ def approve_outreach(account_id):
             session.close()
         except Exception as e:
             print(f"[Approve] SQLite save error: {e}")
+
+        # Resume the LangGraph agent from the human_review interrupt checkpoint
+        try:
+            agent = agent_mod.get_agent()
+            thread_id = f"analysis-{account_id}"
+            config = {"configurable": {"thread_id": thread_id}}
+            agent.invoke(None, config=config)
+            print(f"[Approve] Agent resumed for account {account_id} after CSM approval.")
+        except Exception as e:
+            print(f"[Approve] Agent resume error: {e}")
 
         hubspot_sent = False
         if outreach_message and account_name:
@@ -319,7 +342,7 @@ def get_analytics():
                     }],
                     'support_tickets': []
                 }
-                score, tier, reasons = calculate_risk(account)
+                score, tier, reasons, fired_rules = calculate_risk(account)
                 account['risk_tier'] = tier
                 account['risk_score'] = score
                 accounts.append(account)
@@ -328,7 +351,7 @@ def get_analytics():
             accounts = df.to_dict(orient='records')
             from rules_engine import calculate_risk
             for acc in accounts:
-                score, tier, reasons = calculate_risk(acc)
+                score, tier, reasons, fired_rules = calculate_risk(acc)
                 acc['risk_tier'] = tier
 
         high = sum(1 for a in accounts if a.get('risk_tier') == 'HIGH')
@@ -349,7 +372,7 @@ def get_analytics():
             if 'support_tickets' not in a:
                 a['support_tickets'] = []
             try:
-                _, _, reasons = calculate_risk(a)
+                _, _, reasons, _ = calculate_risk(a)
                 for r in reasons:
                     top_reasons[r] = top_reasons.get(r, 0) + 1
             except Exception:
@@ -390,6 +413,18 @@ def get_outcome_metrics():
 
         success_rate = round((successful / total_interventions * 100), 1) if total_interventions > 0 else 0
 
+        flagged = [
+            {
+                'account_id': a.id,
+                'account_name': a.name,
+                'flag_reason': a.flag_reason,
+                'outcome_date': a.outcome_date.isoformat() if a.outcome_date else None,
+                'assigned_csm': a.assigned_csm
+            }
+            for a in relevant
+            if getattr(a, 'flagged_for_admin', False)
+        ]
+
         session.close()
         return jsonify({
             'total_interventions': total_interventions,
@@ -397,7 +432,8 @@ def get_outcome_metrics():
             'failed': failed,
             'pending': pending,
             'contacted': contacted,
-            'success_rate': success_rate
+            'success_rate': success_rate,
+            'flagged_accounts': flagged
         }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -450,7 +486,7 @@ def get_trend_data():
         accounts_csv = load_accounts()
         high = medium = low = 0
         for acc in accounts_csv:
-            score, tier, reasons = calculate_risk(acc)
+            score, tier, reasons, fired_rules = calculate_risk(acc)
             if tier == 'HIGH': high += 1
             elif tier == 'MEDIUM': medium += 1
             else: low += 1
@@ -509,7 +545,7 @@ def analytics_insights():
                         'support_tickets': []
                     }
                     try:
-                        _, _, reasons = calculate_risk(account)
+                        _, _, reasons, _ = calculate_risk(account)
                         for r in reasons:
                             reason_counts[r] = reason_counts.get(r, 0) + 1
                     except Exception:
@@ -618,11 +654,11 @@ def run_daily_analysis():
     try:
         csv_path = os.path.join(os.path.dirname(__file__), 'data', 'accounts.csv')
         df = pd.read_csv(csv_path)
-        active_accounts = df[df['status'].str.lower() == 'active']
+        active_accounts = df[df['status'].str.lower().isin(['active'])]
         from rules_engine import calculate_risk
         for idx, row in active_accounts.iterrows():
             account_id = row['id']
-            score, tier, reasons = calculate_risk(row.to_dict())
+            score, tier, reasons, fired_rules = calculate_risk(row.to_dict())
             if tier in ['HIGH', 'MEDIUM']:
                 print(f"[Scheduler] Analyzing {tier} risk account: {account_id}")
                 result = agent_mod.run_analysis_agent(account_id)
@@ -655,7 +691,22 @@ def run_daily_analysis():
                     }],
                     'support_tickets': []
                 }
-                score, tier, reasons = calculate_risk(account)
+                # Skip accounts already contacted — awaiting CSM outcome
+                company_status = company.get('status', 'Active')
+                try:
+                    from database import SessionLocal as _SessionLocal
+                    from models import Account as _Account
+                    _s = _SessionLocal()
+                    _db_acc = _s.query(_Account).filter_by(id=company.get('id')).first()
+                    if _db_acc and _db_acc.status:
+                        company_status = _db_acc.status
+                    _s.close()
+                except Exception:
+                    pass
+                if company_status == 'Contacted':
+                    print(f"[Scheduler] Skipping HubSpot Contacted account: {company.get('name')}")
+                    continue
+                score, tier, reasons, fired_rules = calculate_risk(account)
                 if tier in ['HIGH', 'MEDIUM']:
                     print(f"[Scheduler] Analyzing HubSpot {tier} risk account: {company.get('name')}")
                     result = agent_mod.run_analysis_agent(company.get('id'))
@@ -700,22 +751,28 @@ def check_intervention_outcomes():
         for acc in contacted_accounts:
             try:
                 # Determine outcome based on renewal_date
-                outcome = 'unknown'
+                # Only mark churned if renewal date has passed (or no renewal date at all)
+                # If renewal date is still in the future, skip — leave as Contacted
+                outcome = None
                 if acc.renewal_date:
                     if acc.renewal_date <= now:
                         # Renewal date has passed and still Contacted = churned
                         outcome = 'churned'
                         acc.was_successful = False
                     else:
-                        # Renewal date still in future = assume churned after 30 days no update
-                        outcome = 'churned'
-                        acc.was_successful = False
+                        # Renewal date still in future — do not mark as churned yet
+                        print(f"[Outcome Monitor] Account {acc.id} renewal still ahead ({acc.renewal_date.date()}). Skipping.")
+                        continue
                 else:
+                    # No renewal date and 30+ days since intervention = churned
                     outcome = 'churned'
                     acc.was_successful = False
 
                 acc.outcome_date = now
                 acc.status = 'Churned' if outcome == 'churned' else 'Renewed'
+                if outcome == 'churned':
+                    acc.flagged_for_admin = True
+                    acc.flag_reason = f"Auto-flagged: churned after 30-day intervention window (renewal: {acc.renewal_date.date() if acc.renewal_date else 'N/A'})"
 
                 # Get risk reasons for this account
                 account_dict = {
@@ -732,16 +789,25 @@ def check_intervention_outcomes():
                 risk_result = calculate_risk(account_dict)
                 if isinstance(risk_result, tuple):
                     risk_reasons = risk_result[2] if len(risk_result) > 2 else []
+                    acc_fired_rules = risk_result[3] if len(risk_result) > 3 else []
                 else:
                     risk_reasons = risk_result.get('reasons', [])
+                    acc_fired_rules = []
 
-                # Write outcome back to ChromaDB RAG
+                # Write outcome back to ChromaDB RAG only for accounts actually marked churned
                 add_outcome_to_rag(
                     account_id=acc.id,
                     risk_reasons=risk_reasons,
                     outcome=outcome,
                     csm_action=f"Intervention on {acc.intervention_date.strftime('%Y-%m-%d') if acc.intervention_date else 'unknown date'}"
                 )
+
+                # Run feedback loop for this account's fired rules if churned
+                if outcome == 'churned' and acc_fired_rules:
+                    try:
+                        run_feedback_loop(fired_rules=acc_fired_rules)
+                    except Exception as fb_err:
+                        print(f"[Outcome Monitor] Feedback loop error for {acc.id}: {fb_err}")
 
                 print(f"[Outcome Monitor] Account {acc.id} marked as {outcome}.")
 
@@ -752,13 +818,7 @@ def check_intervention_outcomes():
         session.commit()
         session.close()
 
-        # Run feedback loop recalibration after recording outcomes
-        try:
-            run_feedback_loop()
-            print("[Outcome Monitor] Feedback loop recalibration complete.")
-        except Exception as e:
-            print(f"[Outcome Monitor] Feedback loop error: {e}")
-
+        print("[Outcome Monitor] Feedback loop recalibration complete.")
         print(f"[Outcome Monitor] Done. Processed {len(contacted_accounts)} accounts.")
 
     except Exception as e:
@@ -921,6 +981,13 @@ def record_outcome(account_id):
         import datetime
         session = SessionLocal()
         acc = session.query(AccountModel).filter_by(id=account_id).first()
+        # Cache fields before session close to avoid detached instance errors
+        acc_contract_type = acc.contract_type if acc else None
+        acc_tenure = acc.tenure if acc else 0
+        acc_monthly_charges = acc.monthly_charges if acc else 0
+        acc_contract_value = acc.contract_value if acc else 0
+        acc_last_login_date = str(acc.last_login_date) if acc and acc.last_login_date else None
+        acc_renewal_date = str(acc.renewal_date) if acc and acc.renewal_date else None
         if not acc:
             new_acc = AccountModel(
                 id=account_id,
@@ -935,15 +1002,34 @@ def record_outcome(account_id):
             acc.status = 'Churned' if outcome == 'churned' else 'Renewed'
             acc.was_successful = False if outcome == 'churned' else True
             acc.outcome_date = datetime.datetime.utcnow()
+            if outcome == 'churned':
+                acc.flagged_for_admin = True
+                acc.flag_reason = f"CSM-reported churn: {csm_action}"
             session.commit()
         session.close()
 
+        outcome_fired_rules = []
         try:
             from rag import add_outcome_to_rag
             from rules_engine import calculate_risk
+            from data_loader import load_metrics, load_tickets
+            account_dict = {
+                'id': account_id,
+                'contract_type': acc_contract_type,
+                'tenure': acc_tenure,
+                'monthly_charges': acc_monthly_charges,
+                'contract_value': acc_contract_value,
+                'last_login_date': acc_last_login_date,
+                'renewal_date': acc_renewal_date,
+                'usage_metrics': load_metrics(account_id),
+                'support_tickets': load_tickets(account_id)
+            }
+            risk_result = calculate_risk(account_dict)
+            risk_reasons = risk_result[2] if isinstance(risk_result, tuple) and len(risk_result) > 2 else []
+            outcome_fired_rules = risk_result[3] if isinstance(risk_result, tuple) and len(risk_result) > 3 else []
             add_outcome_to_rag(
                 account_id=account_id,
-                risk_reasons=[],
+                risk_reasons=risk_reasons,
                 outcome=outcome,
                 csm_action=csm_action
             )
@@ -953,7 +1039,7 @@ def record_outcome(account_id):
         if outcome == 'churned':
             try:
                 from feedback_loop import run_feedback_loop
-                run_feedback_loop()
+                run_feedback_loop(fired_rules=outcome_fired_rules if outcome_fired_rules else None)
             except Exception as e:
                 print(f"[Outcome] Feedback loop error: {e}")
 

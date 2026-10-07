@@ -21,7 +21,11 @@ class Account(Base):
     # Week 5: Outcome fields
     intervention_date = Column(DateTime)
     outcome_date = Column(DateTime)
-    was_successful = Column(Boolean) # True if renewed, False if churned
+    was_successful = Column(Boolean)  # True if renewed, False if churned
+
+    # Admin flag fields
+    flagged_for_admin = Column(Boolean, default=False)
+    flag_reason = Column(String, nullable=True)
 
     risk_score = relationship("RiskScore", back_populates="account", uselist=False)
     usage_metrics = relationship("UsageMetric", back_populates="account")
@@ -78,6 +82,13 @@ class RuleThreshold(Base):
     min_value = Column(Float, default=0)
     max_value = Column(Float, default=100)
     last_updated = Column(DateTime, default=datetime.datetime.utcnow)
+
+class HubSpotToken(Base):
+    __tablename__ = 'hubspot_tokens'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    access_token = Column(String, nullable=False)
+    refresh_token = Column(String, nullable=True)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class User(Base):
     __tablename__ = 'users'

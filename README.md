@@ -61,7 +61,7 @@ ChurnAlert AI is a full-stack agentic system that helps Customer Success Manager
 
 ## Features
 
-- **HubSpot MCP Integration** — Live CRM data from real HubSpot companies via Service Key
+- **HubSpot MCP Integration** — Live CRM data from real HubSpot companies via OAuth 2.1 with PKCE
 - **Dual Data Source** — Switch between HubSpot live data and CSV demo data from the dashboard
 - **6-Node LangGraph Agent** — Monitor → Score → Reason → Brief → Human Review → Outcome
 - **Deterministic Rules Engine** — 13 configurable thresholds editable by Admin in real time
@@ -198,7 +198,7 @@ python backend/IBM_kaggle_chromadb.py
 | Database | SQLite with SQLAlchemy ORM |
 | Agent Orchestration | LangGraph StateGraph with SQLite checkpointing |
 | LLM | Groq with openai/gpt-oss-120b |
-| MCP | HubSpot MCP via Service Key |
+| MCP | HubSpot MCP via OAuth 2.1 with PKCE — tokens persisted in SQLite |
 | Vector DB | ChromaDB with DefaultEmbeddingFunction (ONNX) |
 | RAG | ChromaDB — top 3 similar past cases per account |
 | Observability | LangSmith — traces every agent node |
@@ -258,10 +258,9 @@ LANGCHAIN_PROJECT=churneye
 HUBSPOT_CLIENT_ID=your_hubspot_client_id
 HUBSPOT_CLIENT_SECRET=your_hubspot_client_secret
 HUBSPOT_REDIRECT_URI=http://localhost:5000/hubspot/callback
-HUBSPOT_APP_ID=your_hubspot_app_id
-HUBSPOT_ACCESS_TOKEN=your_hubspot_service_key
-HUBSPOT_REFRESH_TOKEN=
 ```
+
+> **Note**: HubSpot access and refresh tokens are obtained via the OAuth flow at `/hubspot/connect` and saved automatically to the database — no need to add them to `.env`.
 
 ### 4. Initialize Database and Seed Data
 
@@ -296,12 +295,13 @@ Frontend runs at: `http://localhost:5173`
 ## HubSpot Setup (Optional — for live CRM data)
 
 1. Go to [developers.hubspot.com](https://developers.hubspot.com) and create a free developer account
-2. Create a Test Account
-3. Go to Settings → Integrations → Service Keys → Create
+2. Create a Public App (not a Private App — OAuth 2.1 requires a Public App)
+3. Under Auth settings, add redirect URL: `http://localhost:5000/hubspot/callback`
 4. Add scopes: `crm.objects.companies.read`, `crm.objects.contacts.read`, `tickets`, `crm.schemas.companies.write`
-5. Copy the Service Key token into `HUBSPOT_ACCESS_TOKEN` in `.env`
-6. Run `python create_hubspot_properties.py` to create custom properties
-7. Import your companies CSV into HubSpot
+5. Copy the Client ID and Client Secret into `.env` as `HUBSPOT_CLIENT_ID` and `HUBSPOT_CLIENT_SECRET`
+6. Visit `http://localhost:5000/hubspot/connect` and complete the OAuth flow — tokens are saved automatically to the database
+7. Run `python create_hubspot_properties.py` to create custom properties
+8. Import your companies CSV into HubSpot
 
 ---
 
@@ -347,6 +347,7 @@ python backend/apscheduler_verify.py
 | GET | /hubspot/companies | Fetch all HubSpot companies |
 | POST | /scheduler/run-now | Manually trigger 6am analysis |
 | POST | /scheduler/check-outcomes | Manually trigger outcome check |
+| GET | /rag/status | ChromaDB RAG status and record count |
 
 ---
 
@@ -366,7 +367,7 @@ python backend/apscheduler_verify.py
 - **Backend**: Python 3, Flask, Flask-CORS, SQLAlchemy
 - **AI/ML**: LangGraph, LangChain, Groq (openai/gpt-oss-120b), LangSmith
 - **Vector DB**: ChromaDB, ONNX Embeddings
-- **MCP**: HubSpot MCP via Service Key
+- **MCP**: HubSpot MCP via OAuth 2.1 with PKCE
 - **Database**: SQLite
 - **Scheduler**: APScheduler
 - **Data**: IBM Telco Customer Churn Dataset (Kaggle), Faker (synthetic demo data)

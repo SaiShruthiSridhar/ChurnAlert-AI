@@ -33,6 +33,7 @@ class AgentState(TypedDict):
     query: str
     chat_response: str
     hubspot_used: bool
+    brief: dict
 
 import data_loader
 
@@ -118,8 +119,8 @@ def score_node(state: AgentState):
     account = state.get('account_data')
     if not account:
         account = data_loader.get_account_details(state['account_id'])
-    score, tier, reasons = calculate_risk(account)
-    return {"risk_info": {"score": score, "tier": tier, "reasons": reasons}}
+    score, tier, reasons, fired_rules = calculate_risk(account)
+    return {"risk_info": {"score": score, "tier": tier, "reasons": reasons, "fired_rules": fired_rules}}
 
 def retrieve_node(state: AgentState):
     # Retrieve similar cases based on risk reasons
@@ -226,6 +227,17 @@ def chat_node(state: AgentState):
     response = llm.invoke(prompt)
     return {"chat_response": response.content}
 
+def human_review_node(state: AgentState):
+    """
+    Pause point for CSM human review. The agent is interrupted here before
+    the outcome node runs. A CSM must call /accounts/<id>/approve to resume.
+    This node itself is a no-op — it just serves as the interrupt checkpoint.
+    """
+    account_name = state.get('account_data', {}).get('name', 'Unknown')
+    tier = state.get('risk_info', {}).get('tier', 'UNKNOWN')
+    print(f"[Human Review Node] Awaiting CSM approval for {account_name} — {tier} risk.")
+    return {}
+
 def brief_node(state: AgentState):
     risk_info = state.get('risk_info', {})
     account_data = state.get('account_data', {})
@@ -243,17 +255,79 @@ def brief_node(state: AgentState):
         'priority_rank': 0 if tier == 'HIGH' else 1 if tier == 'MEDIUM' else 2
     }
     print(f"[Brief Node] Package ready for {brief['account_name']} — {tier} risk — CSM: {brief['assigned_csm']}")
-    return {}
+    return {"brief": brief}
 
 def outcome_node(state: AgentState):
+    """
+    Records agent analysis outcome: updates account status, saves to ChromaDB RAG,
+    runs feedback loop with the rules that fired, and sets admin flag for high-risk churned accounts.
+    """
     risk_info = state.get('risk_info', {})
     tier = risk_info.get('tier', 'LOW')
+    account_id = state.get('account_id', '')
     account_name = state.get('account_data', {}).get('name', 'Unknown')
+    fired_rules = risk_info.get('fired_rules', [])
+    risk_reasons = risk_info.get('reasons', [])
+
+    print(f"[Outcome Node] Processing {account_name} — tier: {tier}")
+
+    # Update account status in SQLite
     if tier in ['HIGH', 'MEDIUM']:
-        print(f"[Outcome Node] {account_name} queued for CSM review. Awaiting human approval.")
+        try:
+            from database import SessionLocal
+            from models import Account
+            import datetime
+            session = SessionLocal()
+            acc = session.query(Account).filter_by(id=account_id).first()
+            if acc and acc.status == 'Active':
+                # Flag high-value HIGH risk accounts for admin review
+                if tier == 'HIGH':
+                    contract_value = state.get('account_data', {}).get('contract_value', 0)
+                    try:
+                        contract_value = float(contract_value)
+                    except (ValueError, TypeError):
+                        contract_value = 0
+                    if contract_value > 10000:
+                        acc.flagged_for_admin = True
+                        acc.flag_reason = f"Auto-flagged: HIGH risk account with ${contract_value:,.0f} contract value"
+                session.commit()
+            session.close()
+        except Exception as e:
+            print(f"[Outcome Node] SQLite update error: {e}")
+
+        # Save analysis to ChromaDB RAG for future similar-case retrieval
+        try:
+            from rag import add_outcome_to_rag
+            add_outcome_to_rag(
+                account_id=account_id,
+                risk_reasons=risk_reasons,
+                outcome='at_risk',
+                csm_action=f"AI analysis completed — {tier} risk tier assigned"
+            )
+        except Exception as e:
+            print(f"[Outcome Node] RAG update error: {e}")
+
+        # Run feedback loop only for HIGH risk — strengthen signals that fired
+        if tier == 'HIGH' and fired_rules:
+            try:
+                from feedback_loop import run_feedback_loop
+                run_feedback_loop(fired_rules=fired_rules)
+                print(f"[Outcome Node] Feedback loop updated {len(fired_rules)} rule weights.")
+            except Exception as e:
+                print(f"[Outcome Node] Feedback loop error: {e}")
+
+        print(f"[Outcome Node] {account_name} — {tier} risk — queued for CSM review.")
     else:
         print(f"[Outcome Node] {account_name} is LOW risk. No immediate action needed.")
+
     return {}
+
+def route_after_score(state: AgentState):
+    """After scoring, skip AI for LOW risk accounts."""
+    tier = state.get('risk_info', {}).get('tier', 'LOW')
+    if tier == 'LOW':
+        return END
+    return "retrieve"
 
 def get_agent():
     workflow = StateGraph(AgentState)
@@ -263,17 +337,19 @@ def get_agent():
     workflow.add_node("retrieve", retrieve_node)
     workflow.add_node("reason", reason_node)
     workflow.add_node("brief", brief_node)
+    workflow.add_node("human_review", human_review_node)
     workflow.add_node("outcome", outcome_node)
 
     workflow.set_entry_point("monitor")
     workflow.add_edge("monitor", "score")
-    workflow.add_edge("score", "retrieve")
+    workflow.add_conditional_edges("score", route_after_score, {"retrieve": "retrieve", END: END})
     workflow.add_edge("retrieve", "reason")
     workflow.add_edge("reason", "brief")
-    workflow.add_edge("brief", "outcome")
+    workflow.add_edge("brief", "human_review")
+    workflow.add_edge("human_review", "outcome")
     workflow.add_edge("outcome", END)
 
-    return workflow.compile(checkpointer=memory)
+    return workflow.compile(checkpointer=memory, interrupt_before=["human_review"])
 
 def get_chat_agent():
     workflow = StateGraph(AgentState)
@@ -303,5 +379,6 @@ def run_analysis_agent(account_id: str):
         "reasoning": result.get("reasoning"),
         "action_recommendation": result.get("action_recommendation"),
         "outreach_draft": result.get("outreach_draft"),
-        "confidence": result.get("confidence", "MEDIUM")
+        "confidence": result.get("confidence", "MEDIUM"),
+        "brief": result.get("brief")
     }
