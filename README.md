@@ -61,7 +61,7 @@ ChurnAlert AI is a full-stack agentic system that helps Customer Success Manager
 
 ## Features
 
-- **HubSpot MCP Integration** — Live CRM data from real HubSpot companies via OAuth 2.1 with PKCE
+- **HubSpot MCP Integration** — Live CRM data from demo companies in a HubSpot test account via OAuth 2.1 with PKCE
 - **Dual Data Source** — Switch between HubSpot live data and CSV demo data from the dashboard
 - **6-Node LangGraph Agent** — Monitor → Score → Reason → Brief → Human Review → Outcome
 - **Deterministic Rules Engine** — 13 configurable thresholds editable by Admin in real time

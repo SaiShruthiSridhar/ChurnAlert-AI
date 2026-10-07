@@ -349,7 +349,7 @@ def get_agent():
     workflow.add_edge("human_review", "outcome")
     workflow.add_edge("outcome", END)
 
-    return workflow.compile(checkpointer=memory, interrupt_before=["human_review"])
+    return workflow.compile(checkpointer=memory, interrupt_before=["human_review", "outcome"])
 
 def get_chat_agent():
     workflow = StateGraph(AgentState)

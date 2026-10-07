@@ -132,3 +132,4 @@ yarl==1.24.2
 zipp==4.1.0
 zstandard==0.25.0
 psycopg2-binary==2.9.9
+mcp==1.9.4

@@ -764,9 +764,9 @@ def check_intervention_outcomes():
                         print(f"[Outcome Monitor] Account {acc.id} renewal still ahead ({acc.renewal_date.date()}). Skipping.")
                         continue
                 else:
-                    # No renewal date and 30+ days since intervention = churned
-                    outcome = 'churned'
-                    acc.was_successful = False
+                    # No renewal date — cannot determine outcome, skip
+                    print(f"[Outcome Monitor] Account {acc.id} has no renewal date. Skipping.")
+                    continue
 
                 acc.outcome_date = now
                 acc.status = 'Churned' if outcome == 'churned' else 'Renewed'
